@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eisstand – 3K Planspiel</title>
+<style>
+:root{
+  --cream:#fffaf1;
+  --paper:#ffffff;
+  --ink:#243228;
+  --muted:#718078;
+  --line:#e8e3d9;
+  --green:#2f7a4c;
+  --green2:#e8f4ec;
+  --yellow:#f6b82c;
+  --yellow2:#fff4d3;
+  --blue:#4f86ba;
+  --blue2:#eaf3fb;
+  --red:#be554c;
+  --red2:#fdecea;
+  --purple:#7c65ad;
+  --purple2:#f1edf8;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--cream);color:var(--ink);
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
+}
+button{font:inherit;cursor:pointer}
+button:focus-visible{outline:4px solid rgba(47,122,76,.2);outline-offset:2px}
+.app{max-width:760px;margin:auto;padding:16px}
+.top{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin-bottom:14px
+}
+.logo{display:flex;align-items:center;gap:10px}
+.logo .cone{font-size:38px}
+.logo h1{font-size:1.35rem;margin:0}
+.logo small{display:block;color:var(--muted);margin-top:2px}
+.week{
+  background:var(--green2);color:var(--green);font-weight:900;
+  padding:8px 12px;border-radius:999px;white-space:nowrap
+}
+.card{
+  background:var(--paper);border:1px solid var(--line);border-radius:24px;
+  padding:20px;margin-bottom:14px
+}
+.screen{display:none}.screen.active{display:block}
+.hero{text-align:center;padding:28px 22px}
+.hero .bigemoji{font-size:58px;line-height:1}
+.hero h2{font-size:1.6rem;margin:10px 0 8px}
+.hero p{color:var(--muted);line-height:1.55;margin:0 auto;max-width:600px}
+.btn{
+  width:100%;min-height:54px;border:0;border-radius:17px;padding:14px 18px;
+  font-weight:950;font-size:1rem
+}
+.btn.main{background:var(--green);color:white}
+.btn.sun{background:var(--yellow);color:#493400}
+.btn.soft{background:#eef1ed;color:var(--ink)}
+.btnrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:560px){.btnrow{grid-template-columns:1fr}}
+
+.kstrip{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px
+}
+.k{
+  border-radius:16px;padding:11px 9px;text-align:center;font-weight:900
+}
+.k span{display:block;font-size:.72rem;margin-top:3px;color:var(--muted);font-weight:800}
+.k.clients{background:var(--blue2)}
+.k.comp{background:var(--purple2)}
+.k.costs{background:var(--yellow2)}
+@media(max-width:560px){.kstrip{grid-template-columns:1fr 1fr 1fr}.k{font-size:.85rem}}
+
+.stepdots{display:flex;justify-content:center;gap:8px;margin:4px 0 16px}
+.dot{width:38px;height:7px;border-radius:999px;background:#e4e4df}
+.dot.done{background:var(--green)}.dot.now{background:var(--yellow)}
+
+.weather{text-align:center}
+.weather .emoji{font-size:72px}
+.weather h2{margin:5px 0 4px}
+.weather p{margin:0;color:var(--muted)}
+
+.title{font-weight:950;font-size:1.1rem;margin:0 0 12px}
+.subtitle{color:var(--muted);margin:-5px 0 14px;line-height:1.45}
+
+.places{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.place{
+  border:2px solid var(--line);background:#fff;border-radius:20px;padding:16px 12px;
+  text-align:center;min-height:175px
+}
+.place.selected{border-color:var(--green);background:var(--green2)}
+.place .emoji{font-size:38px}
+.place b{display:block;margin:7px 0 10px}
+.meterline{
+  display:flex;justify-content:space-between;align-items:center;gap:6px;
+  font-size:.76rem;margin-top:6px
+}
+.meter{
+  width:54px;display:flex;gap:3px
+}
+.meter i{display:block;height:7px;flex:1;background:#dedfd9;border-radius:999px}
+.meter i.on{background:var(--green)}
+.place .fee{margin-top:10px;font-size:.77rem;color:var(--muted)}
+@media(max-width:680px){.places{grid-template-columns:1fr}.place{min-height:0}}
+
+.choosegrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.choicebox{background:#faf9f5;border-radius:18px;padding:15px}
+.choicebox h3{margin:0 0 6px;font-size:1rem}
+.choicebox p{margin:0 0 12px;color:var(--muted);font-size:.84rem}
+.pills{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.pill{
+  min-height:48px;border:2px solid var(--line);background:white;border-radius:14px;
+  font-weight:900
+}
+.pill.selected{border-color:var(--green);background:var(--green2);color:var(--green)}
+@media(max-width:650px){.choosegrid{grid-template-columns:1fr}}
+
+.costpreview{
+  margin-top:14px;border-radius:18px;background:var(--yellow2);padding:15px;
+  display:flex;justify-content:space-between;gap:12px;align-items:center
+}
+.costpreview span{color:#6f5a24;font-size:.86rem}
+.costpreview strong{font-size:1.2rem;white-space:nowrap}
+
+.resulthead{text-align:center;padding:24px}
+.resulthead.good{background:var(--green2)}
+.resulthead.warn{background:var(--yellow2)}
+.resulthead.bad{background:var(--red2)}
+.resulthead .emoji{font-size:55px}
+.resulthead h2{margin:7px 0 4px}
+.resulthead p{margin:0;color:var(--muted)}
+.score{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:8px
+}
+.score .box{
+  border-radius:16px;background:#faf9f5;padding:13px;text-align:center
+}
+.score span{display:block;color:var(--muted);font-size:.7rem;font-weight:850}
+.score strong{display:block;margin-top:4px;font-size:1.12rem}
+@media(max-width:560px){.score{grid-template-columns:1fr 1fr}}
+
+.story{
+  margin-top:13px;padding:14px 15px;border-radius:16px;background:var(--blue2);
+  line-height:1.5
+}
+.story b{display:block;margin-bottom:3px}
+.cashline{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:12px 14px;border-radius:16px;background:#f7f7f3;margin-top:12px
+}
+.cashline strong{color:var(--green);font-size:1.15rem}
+
+.history{overflow:auto}
+table{width:100%;border-collapse:collapse}
+th,td{padding:9px 7px;border-bottom:1px solid var(--line);text-align:left;font-size:.8rem}
+th{font-size:.68rem;color:var(--muted);text-transform:uppercase}
+.endquestions p{margin:8px 0}
+footer{text-align:center;color:var(--muted);font-size:.75rem;padding:8px}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="top">
+    <div class="logo">
+      <div class="cone">🍦</div>
+      <div><h1>Eisstand</h1><small>Das 3K-Marktspiel</small></div>
+    </div>
+    <div class="week" id="weekBadge">Woche 1 / 6</div>
+  </div>
+
+  <section class="screen active" id="start">
+    <div class="card hero">
+      <div class="bigemoji">🍨</div>
+      <h2>Werdet Eis-Unternehmer!</h2>
+      <p>Ihr habt sechs Wochen Zeit. Jede Woche müsst ihr entscheiden, wo ihr verkauft, wie viel Eis ihr vorbereitet und welchen Preis ihr nehmt.</p>
+      <div class="kstrip">
+        <div class="k clients">👥 Kunden<span>Wie viele kommen?</span></div>
+        <div class="k comp">🏪 Konkurrenz<span>Wer verkauft noch?</span></div>
+        <div class="k costs">💶 Kosten<span>Was müsst ihr zahlen?</span></div>
+      </div>
+    </div>
+    <button class="btn main" id="startBtn">Los geht's! →</button>
+  </section>
+
+  <section class="screen" id="weather">
+    <div class="stepdots"><div class="dot now"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+    <div class="card weather">
+      <div class="emoji" id="weatherEmoji">☀️</div>
+      <h2 id="weatherName">Sonnig & heiß</h2>
+      <p id="weatherText">Perfektes Eiswetter!</p>
+    </div>
+    <div class="card">
+      <div class="title">Was bedeutet das?</div>
+      <div class="kstrip" style="margin-top:0">
+        <div class="k clients">👥 Kunden<span id="weatherCustomers">eher viele</span></div>
+        <div class="k comp">🏪 Konkurrenz<span id="weatherCompetition">kann steigen</span></div>
+        <div class="k costs">💶 Kosten<span>bleiben planbar</span></div>
+      </div>
+    </div>
+    <button class="btn sun" id="weatherNext">Standort wählen →</button>
+  </section>
+
+  <section class="screen" id="location">
+    <div class="stepdots"><div class="dot done"></div><div class="dot now"></div><div class="dot"></div><div class="dot"></div></div>
+    <div class="card">
+      <div class="title">Wo wollt ihr heute stehen?</div>
+      <div class="subtitle">Schaut auf die 3 K. Der beste Ort ist nicht immer derselbe.</div>
+      <div class="places" id="places"></div>
+    </div>
+    <button class="btn main" id="locationNext">Weiter →</button>
+  </section>
+
+  <section class="screen" id="plan">
+    <div class="stepdots"><div class="dot done"></div><div class="dot done"></div><div class="dot now"></div><div class="dot"></div></div>
+    <div class="card">
+      <div class="title">Wie plant ihr euren Verkauf?</div>
+      <div class="subtitle" id="planSummary"></div>
+
+      <div class="choosegrid">
+        <div class="choicebox">
+          <h3>🍦 Wie viel Eis?</h3>
+          <p>Mehr Eis = mehr mögliche Verkäufe, aber auch höhere Kosten.</p>
+          <div class="pills" id="qtyChoices"></div>
+        </div>
+
+        <div class="choicebox">
+          <h3>💶 Welcher Preis?</h3>
+          <p>Günstig lockt Kunden an. Teuer bringt mehr Geld pro Portion.</p>
+          <div class="pills" id="priceChoices"></div>
+        </div>
+      </div>
+
+      <div class="costpreview">
+        <span>💰 Eure Kosten für diese Woche</span>
+        <strong id="costPreview">–</strong>
+      </div>
+    </div>
+    <button class="btn sun" id="playWeek">▶ Woche starten!</button>
+  </section>
+
+  <section class="screen" id="result">
+    <div class="stepdots"><div class="dot done"></div><div class="dot done"></div><div class="dot done"></div><div class="dot now"></div></div>
+    <div class="card resulthead good" id="resultHead">
+      <div class="emoji" id="resultEmoji">🎉</div>
+      <h2 id="resultTitle">Gute Woche!</h2>
+      <p id="resultSub"></p>
+    </div>
+
+    <div class="card">
+      <div class="score">
+        <div class="box"><span>VERKAUFT</span><strong id="rSold">–</strong></div>
+        <div class="box"><span>ÜBRIG</span><strong id="rLeft">–</strong></div>
+        <div class="box"><span>UMSATZ</span><strong id="rRevenue">–</strong></div>
+        <div class="box"><span>GEWINN</span><strong id="rProfit">–</strong></div>
+      </div>
+
+      <div class="kstrip">
+        <div class="k clients">👥 Kunden<span id="rCustomers">–</span></div>
+        <div class="k comp">🏪 Konkurrenz<span id="rCompetition">–</span></div>
+        <div class="k costs">💶 Kosten<span id="rCosts">–</span></div>
+      </div>
+
+      <div class="story" id="story"></div>
+
+      <div class="cashline">
+        <span>💼 Eure Kasse</span>
+        <strong id="rCash">–</strong>
+      </div>
+    </div>
+
+    <button class="btn main" id="nextWeek">Nächste Woche →</button>
+  </section>
+
+  <section class="screen" id="end">
+    <div class="card hero">
+      <div class="bigemoji">🏁</div>
+      <h2>Geschafft!</h2>
+      <p>Sechs Wochen Eisgeschäft liegen hinter euch. Jetzt schaut ihr, welche Entscheidungen funktioniert haben.</p>
+    </div>
+
+    <div class="card">
+      <div class="score">
+        <div class="box"><span>ENDKASSE</span><strong id="finalCash">–</strong></div>
+        <div class="box"><span>GEWINN GESAMT</span><strong id="finalProfit">–</strong></div>
+        <div class="box"><span>VERKAUFT</span><strong id="finalSold">–</strong></div>
+        <div class="box"><span>ÜBRIG</span><strong id="finalLeft">–</strong></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="title">Eure sechs Wochen</div>
+      <div class="history">
+        <table>
+          <thead><tr><th>Woche</th><th>Ort</th><th>Wetter</th><th>Preis</th><th>Verkauft</th><th>Gewinn</th></tr></thead>
+          <tbody id="historyRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card endquestions">
+      <div class="title">Was habt ihr gelernt?</div>
+      <p>👥 Wann kamen besonders viele Kunden?</p>
+      <p>🏪 Wann war viel Konkurrenz ein Problem?</p>
+      <p>💶 Wann waren eure Kosten zu hoch?</p>
+      <p>⚖️ Wann passten Angebot und Nachfrage besonders gut zusammen?</p>
+    </div>
+
+    <button class="btn main" id="restart">Nochmal spielen</button>
+  </section>
+
+  <footer>Vereinfachtes Wirtschaftsmodell für den Unterricht.</footer>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const euro=n=>Number(n).toLocaleString("de-DE",{style:"currency",currency:"EUR"});
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+const WEEKS=6;
+const START_CASH=200;
+const UNIT_COST=1.10;
+const qtyOptions=[20,40,60,80];
+const priceOptions=[2.50,3.00,3.50,4.00];
+
+const weathers=[
+  {id:"sun",emoji:"☀️",name:"Sonnig & heiß",text:"Perfektes Eiswetter!",customerText:"viele unterwegs",compText:"mehr Eisstände kommen",factor:{lake:1.55,city:1.15,park:1.40},competition:{lake:2,city:1,park:1}},
+  {id:"mild",emoji:"⛅",name:"Mild",text:"Ganz gutes Wetter für Eis.",customerText:"mittlere Nachfrage",compText:"normale Konkurrenz",factor:{lake:1.05,city:1.00,park:1.05},competition:{lake:1,city:1,park:0}},
+  {id:"cloud",emoji:"☁️",name:"Bewölkt",text:"Heute haben weniger Menschen Lust auf Eis.",customerText:"eher weniger",compText:"weniger Konkurrenz",factor:{lake:.65,city:.90,park:.70},competition:{lake:0,city:1,park:0}},
+  {id:"rain",emoji:"🌧️",name:"Regnerisch",text:"Heute wird Eisverkauf schwierig.",customerText:"wenige unterwegs",compText:"kaum Eisstände",factor:{lake:.35,city:.75,park:.40},competition:{lake:0,city:0,park:0}}
+];
+
+const locations=[
+  {id:"lake",emoji:"🏖️",name:"Badesee",baseCustomers:85,baseCompetition:2,standFee:18,marketPrice:3.20,
+   customers:3,competition:3,costs:2},
+  {id:"city",emoji:"🏙️",name:"Innenstadt",baseCustomers:70,baseCompetition:2,standFee:25,marketPrice:3.40,
+   customers:2,competition:2,costs:3},
+  {id:"park",emoji:"🌳",name:"Stadtpark",baseCustomers:55,baseCompetition:1,standFee:10,marketPrice:3.00,
+   customers:2,competition:1,costs:1}
+];
+
+let state={week:1,cash:START_CASH,weather:null,location:"lake",qty:40,price:3.0,history:[]};
+
+function chooseWeather(){
+  const r=Math.random();
+  return r<.32?weathers[0]:r<.62?weathers[1]:r<.84?weathers[2]:weathers[3];
+}
+function getWeather(){return state.weather||weathers[1]}
+function getLocation(){return locations.find(l=>l.id===state.location)||locations[0]}
+function save(){localStorage.setItem("eisstand_playful_v2",JSON.stringify(state))}
+function load(){
+  try{
+    const d=JSON.parse(localStorage.getItem("eisstand_playful_v2"));
+    if(d&&d.week){state=d;return true}
+  }catch(e){}
+  return false;
+}
+function reset(){
+  state={week:1,cash:START_CASH,weather:chooseWeather(),location:"lake",qty:40,price:3.0,history:[]};
+  save();renderAll();show("start");
+}
+function show(id){
+  document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));
+  $("#"+id).classList.add("active");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function updateWeek(){
+  $("#weekBadge").textContent=`Woche ${state.week} / ${WEEKS}`;
+}
+function meter(n){
+  return `<div class="meter">${[1,2,3].map(i=>`<i class="${i<=n?"on":""}"></i>`).join("")}</div>`;
+}
+function renderWeather(){
+  const w=getWeather();
+  $("#weatherEmoji").textContent=w.emoji;
+  $("#weatherName").textContent=w.name;
+  $("#weatherText").textContent=w.text;
+  $("#weatherCustomers").textContent=w.customerText;
+  $("#weatherCompetition").textContent=w.compText;
+}
+function effectiveRatings(loc){
+  const w=getWeather();
+  const customerRaw=loc.baseCustomers*w.factor[loc.id];
+  const cRating=customerRaw>90?3:customerRaw>55?2:1;
+  const compRaw=loc.baseCompetition+w.competition[loc.id];
+  const compRating=compRaw>=3?3:compRaw>=1?2:1;
+  return {cRating,compRating};
+}
+function renderPlaces(){
+  const w=getWeather();
+  $("#places").innerHTML=locations.map(l=>{
+    const r=effectiveRatings(l);
+    return `<button type="button" class="place ${state.location===l.id?"selected":""}" data-loc="${l.id}">
+      <div class="emoji">${l.emoji}</div>
+      <b>${l.name}</b>
+      <div class="meterline"><span>👥 Kunden</span>${meter(r.cRating)}</div>
+      <div class="meterline"><span>🏪 Konkurrenz</span>${meter(r.compRating)}</div>
+      <div class="meterline"><span>💶 Kosten</span>${meter(l.costs)}</div>
+      <div class="fee">Standplatz: ${euro(l.standFee)}</div>
+    </button>`;
+  }).join("");
+  document.querySelectorAll("[data-loc]").forEach(b=>b.addEventListener("click",()=>{
+    state.location=b.dataset.loc;save();renderPlaces();renderPlanSummary();
+  }));
+}
+function renderChoices(){
+  $("#qtyChoices").innerHTML=qtyOptions.map(q=>`<button type="button" class="pill ${state.qty===q?"selected":""}" data-q="${q}">${q} Portionen</button>`).join("");
+  $("#priceChoices").innerHTML=priceOptions.map(p=>`<button type="button" class="pill ${state.price===p?"selected":""}" data-p="${p}">${euro(p)}</button>`).join("");
+  document.querySelectorAll("[data-q]").forEach(b=>b.addEventListener("click",()=>{
+    state.qty=+b.dataset.q;save();renderChoices();renderCost();
+  }));
+  document.querySelectorAll("[data-p]").forEach(b=>b.addEventListener("click",()=>{
+    state.price=+b.dataset.p;save();renderChoices();
+  }));
+}
+function renderPlanSummary(){
+  const l=getLocation(),w=getWeather();
+  $("#planSummary").textContent=`${w.emoji} ${w.name} · ${l.emoji} ${l.name}`;
+}
+function renderCost(){
+  const l=getLocation();
+  $("#costPreview").textContent=euro(l.standFee + state.qty*UNIT_COST);
+}
+function renderAll(){
+  updateWeek();renderWeather();renderPlaces();renderChoices();renderPlanSummary();renderCost();
+}
+function simulate(){
+  const l=getLocation(),w=getWeather();
+  const totalCustomers=Math.round(l.baseCustomers*w.factor[l.id]);
+  const competition=Math.max(0,l.baseCompetition+w.competition[l.id]);
+
+  const ownPriceAdvantage=clamp(1+(l.marketPrice-state.price)*0.45,.35,1.65);
+  const baseShare=totalCustomers/(competition+1);
+  const potentialCustomers=Math.round(clamp(baseShare*ownPriceAdvantage,4,totalCustomers));
+  const sold=Math.min(state.qty,potentialCustomers);
+  const left=state.qty-sold;
+  const costs=l.standFee+state.qty*UNIT_COST;
+  const revenue=sold*state.price;
+  const profit=revenue-costs;
+  state.cash+=profit;
+
+  let cls="good",emoji="🎉",title="Das lief ziemlich gut!",story="";
+  if(left>=Math.max(10,state.qty*.25)){
+    cls="bad";emoji="🧊";title="Zu viel Eis vorbereitet!";
+    story=`Viele Portionen blieben übrig. ${competition?`Ihr hattet ${competition} Konkurrenzstand${competition===1?"":"e"}. `:""}Beim nächsten Mal könnte eine kleinere Menge oder ein günstigerer Preis helfen.`;
+  }else if(sold===state.qty && potentialCustomers>state.qty+5){
+    cls="warn";emoji="🔥";title="Ausverkauft!";
+    story=`Alle ${state.qty} Portionen waren weg. Es wären sogar noch mehr Kunden gekommen. Vielleicht könnt ihr beim nächsten Mal mehr Eis vorbereiten.`;
+  }else{
+    cls="good";emoji="⚖️";title="Gut getroffen!";
+    story=`Euer Angebot passte ziemlich gut zur Nachfrage. Ihr habt ${sold} von ${state.qty} Portionen verkauft.`;
+  }
+
+  const round={
+    week:state.week,location:l.name,weather:w.name,qty:state.qty,price:state.price,
+    totalCustomers,competition,potentialCustomers,sold,left,costs,revenue,profit,cash:state.cash
+  };
+  state.history.push(round);save();
+
+  $("#resultHead").className=`card resulthead ${cls}`;
+  $("#resultEmoji").textContent=emoji;
+  $("#resultTitle").textContent=title;
+  $("#resultSub").textContent=`${l.emoji} ${l.name} · ${w.emoji} ${w.name}`;
+  $("#rSold").textContent=`${sold} / ${state.qty}`;
+  $("#rLeft").textContent=left;
+  $("#rRevenue").textContent=euro(revenue);
+  $("#rProfit").textContent=(profit>=0?"+":"")+euro(profit);
+  $("#rProfit").style.color=profit>=0?"var(--green)":"var(--red)";
+  $("#rCustomers").textContent=`${totalCustomers} am Ort`;
+  $("#rCompetition").textContent=competition===0?"keine":`${competition} andere`;
+  $("#rCosts").textContent=euro(costs);
+  $("#story").innerHTML=`<b>Was ist passiert?</b>${story}`;
+  $("#rCash").textContent=euro(state.cash);
+  $("#nextWeek").textContent=state.week>=WEEKS?"Spiel auswerten 🏁":"Nächste Woche →";
+  show("result");
+}
+function nextWeek(){
+  if(state.week>=WEEKS){renderEnd();show("end");return}
+  state.week++;
+  state.weather=chooseWeather();
+  save();renderAll();show("weather");
+}
+function renderEnd(){
+  const totalProfit=state.history.reduce((s,r)=>s+r.profit,0);
+  const totalSold=state.history.reduce((s,r)=>s+r.sold,0);
+  const totalLeft=state.history.reduce((s,r)=>s+r.left,0);
+  $("#finalCash").textContent=euro(state.cash);
+  $("#finalProfit").textContent=(totalProfit>=0?"+":"")+euro(totalProfit);
+  $("#finalSold").textContent=totalSold;
+  $("#finalLeft").textContent=totalLeft;
+  $("#historyRows").innerHTML=state.history.map(r=>`
+    <tr>
+      <td>${r.week}</td><td>${r.location}</td><td>${r.weather}</td>
+      <td>${euro(r.price)}</td><td>${r.sold}/${r.qty}</td>
+      <td style="font-weight:850;color:${r.profit>=0?'var(--green)':'var(--red)'}">${r.profit>=0?'+':''}${euro(r.profit)}</td>
+    </tr>`).join("");
+}
+
+$("#startBtn").addEventListener("click",()=>show("weather"));
+$("#weatherNext").addEventListener("click",()=>show("location"));
+$("#locationNext").addEventListener("click",()=>{renderPlanSummary();renderCost();show("plan")});
+$("#playWeek").addEventListener("click",simulate);
+$("#nextWeek").addEventListener("click",nextWeek);
+$("#restart").addEventListener("click",reset);
+
+if(!load())reset();else{if(!state.weather)state.weather=chooseWeather();renderAll();show("start")}
+</script>
+</body>
+</html>
